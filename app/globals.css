@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #FDFBF7;
+  --bg-secondary: #F5F0E8;
+  --bg-dark: #2C3E50;
+  --text-primary: #2C3E50;
+  --text-secondary: #7F8C8D;
+  --accent: #E67E22;
+  --idea-color: #3498DB;
+  --plan-color: #27AE60;
+  --completed-color: #9B59B6;
+  --person1-color: #E67E22;
+  --person2-color: #16A085;
+  --overlap-color: #E74C3C;
+  --border: #E0D6C8;
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-dark: var(--bg-dark);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent: var(--accent);
+  --color-idea: var(--idea-color);
+  --color-plan: var(--plan-color);
+  --color-completed: var(--completed-color);
+  --color-border: var(--border);
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Only this element scrolls — header and sidebar are fixed, outside it */
+main.main-scroll {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.main-scroll > div {
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+h1.page-title {
+  display: inline-block;
+  padding-bottom: 0.35rem;
+  border-bottom: 3px solid var(--accent);
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}

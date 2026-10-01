@@ -1,0 +1,202 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
+import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
+import Button from '@/components/ui/Button';
+import CountrySelector from '@/components/features/CountrySelector';
+import CitySelector from '@/components/features/CitySelector';
+import { Idea } from '@/lib/types';
+
+export default function EditIdeaPage() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [idea, setIdea] = useState<Idea | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    countries: [] as string[],
+    cities: [] as string[],
+    duration_days: '',
+    season: '',
+    notes: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (id) {
+      fetchIdea();
+    }
+  }, [id]);
+
+  const fetchIdea = async () => {
+    try {
+      const res = await fetch(`/api/ideas/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setIdea(data);
+        setFormData({
+          title: data.title || '',
+          description: data.description || '',
+          countries: data.countries || [],
+          cities: data.cities || [],
+          duration_days: data.duration_days?.toString() || '',
+          season: data.season || '',
+          notes: data.notes || '',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching idea:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newErrors: Record<string, string> = {};
+    if (!formData.title.trim()) newErrors.title = 'Title is required';
+    if (formData.countries.length === 0) newErrors.countries = 'Select at least one country';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/ideas/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
+        }),
+      });
+      
+      if (res.ok) {
+        router.push('/ideas');
+      } else {
+        console.error('Error response:', await res.text());
+      }
+    } catch (error) {
+      console.error('Error updating idea:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[var(--accent)] border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!idea) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <p className="text-[var(--text-secondary)]">Idea no encontrada</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <Link 
+            href="/ideas" 
+            className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-2 inline-block"
+          >
+            ← Back to Ideas
+          </Link>
+          <h1 
+            className="page-title text-3xl font-bold text-[var(--text-primary)]" 
+            style={{ fontFamily: 'var(--font-heading)' }}
+          >
+            Edit Idea
+          </h1>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input
+            label="Trip title *"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="e.g. Trip to Japan"
+            error={errors.title}
+          />
+
+          <Textarea
+            label="Short description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Describe your travel idea..."
+            rows={3}
+          />
+
+          <div>
+            <CountrySelector
+              label="Destination countries *"
+              selectedCountries={formData.countries}
+              onChange={(countries) => setFormData({ ...formData, countries })}
+            />
+            {errors.countries && (
+              <p className="mt-1 text-sm text-red-600">{errors.countries}</p>
+            )}
+          </div>
+
+          <CitySelector
+            label="Specific cities"
+            selectedCountries={formData.countries}
+            selectedCities={formData.cities}
+            onChange={(cities) => setFormData({ ...formData, cities })}
+          />
+
+          <Input
+            label="Estimated trip length (days)"
+            type="number"
+            value={formData.duration_days}
+            onChange={(e) => setFormData({ ...formData, duration_days: e.target.value })}
+            placeholder="e.g. 10"
+          />
+
+          <Input
+            label="Time of year"
+            value={formData.season}
+            onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+            placeholder="e.g. Summer, Spring 2025, July..."
+          />
+
+          <Textarea
+            label="Additional notes"
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            placeholder="Any additional information..."
+            rows={3}
+          />
+
+          <div className="flex gap-4 pt-4">
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Link href="/ideas">
+              <Button type="button" variant="secondary">
+                Cancel
+              </Button>
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
